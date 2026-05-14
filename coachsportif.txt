@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRON FORGE — Bien-Être & Performance</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --primary:   #C65D3B;
+      --secondary: #87CEEB;
+      --cream:     #F5E6D3;
+      --dark:      #111010;
+      --mid:       #1c1b19;
+      --grey:      #FFFFFF;
+      --muted:     rgba(245,230,211,0.38);
+      --fd: 'Barlow Condensed', sans-serif;
+      --fb: 'DM Sans', sans-serif;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body { background: var(--dark); color: var(--cream); font-family: var(--fb); overflow-x: hidden; cursor: none; }
+
+    /* ── Curseur ── */
+    .cursor { position:fixed; width:10px; height:10px; background:var(--primary); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s,background .2s; mix-blend-mode:normal; }
+    .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(198,93,59,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .25s,height .25s,border-color .2s; }
+    ::-webkit-scrollbar { width:3px; }
+    ::-webkit-scrollbar-track { background:var(--dark); }
+    ::-webkit-scrollbar-thumb { background:var(--primary); }
+
+    /* ══════════════════════════════════════
+       NAVBAR BURGER
+    ══════════════════════════════════════ */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 3rem;
+      transition: background 0.4s, backdrop-filter 0.4s;
+    }
+    .navbar.scrolled {
+      background: rgba(17,16,16,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(245,230,211,0.06);
+    }
+    .nav-brand {
+      font-family: var(--fd); font-weight: 900;
+      font-size: 1.5rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--cream);
+      text-decoration: none; cursor: none;
+      z-index: 1001;
+    }
+    .nav-brand span { color: var(--primary); }
+
+    .burger-btn {
+      width: 44px; height: 44px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 7px;
+      background: none; border: none;
+      cursor: none; z-index: 1001; position: relative;
+    }
+    .burger-line {
+      width: 28px; height: 1.5px;
+      background: var(--cream);
+      transition: transform 0.35s cubic-bezier(.76,0,.24,1), opacity 0.3s, width 0.3s;
+      transform-origin: center;
+    }
+    .burger-btn.open .burger-line:nth-child(1) { transform: translateY(8.5px) rotate(45deg); }
+    .burger-btn.open .burger-line:nth-child(2) { opacity: 0; width: 0; }
+    .burger-btn.open .burger-line:nth-child(3) { transform: translateY(-8.5px) rotate(-45deg); }
+
+    /* Overlay menu */
+    .nav-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--dark);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.4s cubic-bezier(.76,0,.24,1);
+    }
+    .nav-overlay.open { pointer-events: all; opacity: 1; }
+
+    .nav-overlay::before {
+      content: 'IRON';
+      position: absolute; bottom: -3rem; right: -1rem;
+      font-family: var(--fd); font-weight: 900;
+      font-size: 28vw; color: transparent;
+      -webkit-text-stroke: 1px rgba(198,93,59,0.05);
+      user-select: none; pointer-events: none;
+    }
+
+    .nav-links { list-style: none; text-align: center; }
+    .nav-links li { overflow: hidden; }
+    .nav-links li a {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      text-transform: uppercase; letter-spacing: -0.02em;
+      color: var(--cream); text-decoration: none;
+      line-height: 1.05; cursor: none;
+      display: block;
+      transition: color 0.25s, -webkit-text-stroke 0.25s;
+      -webkit-text-stroke: 0px var(--primary);
+    }
+    .nav-links li a:hover { color: var(--primary); }
+
+    .nav-overlay-sub {
+      margin-top: 3rem;
+      display: flex; gap: 2.5rem;
+    }
+    .nav-overlay-sub a {
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.7rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: rgba(245,230,211,0.3);
+      text-decoration: none; cursor: none;
+      transition: color 0.2s;
+    }
+    .nav-overlay-sub a:hover { color: var(--primary); }
+
+    /* ══════════════════════════════════════
+       HERO — sans les métadonnées
+    ══════════════════════════════════════ */
+    .hero {
+      position: relative; width: 100%; height: 100vh;
+      overflow: hidden; display: flex;
+      align-items: center; justify-content: center;
+      background: #0e0d0c;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%),
+        linear-gradient(to bottom, rgba(0,0,0,.55) 0%, rgba(0,0,0,.08) 38%, rgba(0,0,0,.08) 62%, rgba(0,0,0,.72) 100%);
+      z-index: 4; pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4; pointer-events: none; z-index: 6; mix-blend-mode: overlay;
+    }
+
+    .hero-title {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(4.5rem, 13vw, 17rem);
+      line-height: 0.88; letter-spacing: -0.01em;
+      text-transform: uppercase; color: rgba(245,230,211,0.92);
+      white-space: nowrap; user-select: none;
+      z-index: 8; will-change: transform, opacity;
+      text-align: center; opacity: 0;
+    }
+    .hero-title .bienetre { color: var(--primary); display: block; }
+    .hero-title .char { display: inline-block; will-change: transform, opacity; }
+    .hero-title .word-break { display: block; }
+
+    .island-wrapper {
+      position: absolute; top: -10%; left: 0;
+      width: 100%; height: 120%;
+      z-index: 2; will-change: transform; overflow: hidden; opacity: 0;
+    }
+    .island-wrapper img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center 30%;
+      display: block; will-change: transform;
+    }
+
+    .hero-line {
+      position: absolute; top: 0; bottom: 0; left: 50%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(198,93,59,0.18) 20%, rgba(198,93,59,0.18) 80%, transparent);
+      z-index: 7; pointer-events: none; opacity: 0;
+    }
+
+    /* ══════════════════════════════════════
+       SECTION INTRO — RÉSERVATION
+    ══════════════════════════════════════ */
+    .s-intro {
+      position: relative;
+      background:
+        radial-gradient(circle at top right, rgba(198,93,59,0.13) 0%, transparent 55%),
+        radial-gradient(circle at bottom left, rgba(135,206,235,0.08) 0%, transparent 50%),
+        #FFFFFF;
+      z-index: 20;
+    }
+    .s-intro::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--primary);
+      transform: scaleX(0); transform-origin: left; z-index: 2;
+    }
+    .s-intro::after {
+      content: 'FORGE';
+      position: absolute; bottom: -3rem; right: -1rem;
+      font-family: var(--fd); font-weight: 900;
+      font-size: 22vw; line-height: 1; color: transparent;
+      -webkit-text-stroke: 1px rgba(17,16,16,0.05);
+      user-select: none; pointer-events: none;
+      letter-spacing: -0.02em; white-space: nowrap;
+    }
+
+    .intro-topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 2.2rem 6rem;
+      border-bottom: 1px solid rgba(17,16,16,0.08);
+      position: relative; z-index: 1;
+    }
+    .intro-topbar-meta {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 0.82rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: rgba(17,16,16,0.45);
+    }
+
+    /* ── Booking layout ── */
+    .booking-section {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      min-height: 72vh;
+      position: relative; z-index: 1;
+    }
+
+    .booking-left {
+      padding: 5rem 6rem;
+      border-right: 1px solid rgba(17,16,16,0.08);
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+
+    .booking-headline {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(3.5rem, 6vw, 8rem);
+      text-transform: uppercase; letter-spacing: -0.02em;
+      line-height: 0.88; color: var(--dark);
+    }
+    .booking-headline em { font-style: normal; color: var(--primary); display: block; }
+
+    .booking-desc {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 1.05rem; line-height: 1.8;
+      color: rgba(17,16,16,0.6); max-width: 40ch;
+      margin-top: 2.5rem;
+    }
+
+    .booking-features {
+      display: flex; flex-direction: column; gap: 0;
+      margin-top: 3rem;
+    }
+    .bf-item {
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid rgba(17,16,16,0.07);
+    }
+    .bf-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--primary); flex-shrink: 0;
+    }
+    .bf-text {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 0.95rem; color: rgba(17,16,16,0.7);
+    }
+    .bf-text strong { font-weight: 600; color: var(--dark); }
+
+    /* ── Calendrier ── */
+    .booking-right {
+      background: var(--dark);
+      padding: 3.5rem;
+      display: flex; flex-direction: column; gap: 2rem;
+    }
+
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cal-month {
+      font-family: var(--fd); font-weight: 900;
+      font-size: 1.4rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--cream);
+    }
+    .cal-nav {
+      display: flex; gap: 0.5rem;
+    }
+    .cal-nav-btn {
+      width: 34px; height: 34px;
+      background: rgba(245,230,211,0.06);
+      border: 1px solid rgba(245,230,211,0.1);
+      color: var(--cream); font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: none; transition: background 0.2s, border-color 0.2s;
+    }
+    .cal-nav-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+    .cal-grid-days {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 0.2rem; text-align: center;
+    }
+    .cal-day-label {
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.6rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: rgba(245,230,211,0.3);
+      padding: 0.4rem 0;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fb); font-weight: 300;
+      font-size: 0.88rem; color: rgba(245,230,211,0.5);
+      cursor: none; transition: all 0.2s; border-radius: 4px;
+      position: relative;
+    }
+    .cal-day.empty { pointer-events: none; }
+    .cal-day.available {
+      color: var(--cream); cursor: none;
+    }
+    .cal-day.available:hover {
+      background: rgba(198,93,59,0.18);
+      color: var(--primary);
+    }
+    .cal-day.selected {
+      background: var(--primary); color: #fff; font-weight: 600;
+    }
+    .cal-day.today::after {
+      content: '';
+      position: absolute; bottom: 3px; left: 50%;
+      transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--secondary);
+    }
+    .cal-day.past { opacity: 0.2; pointer-events: none; }
+
+    /* ── Créneaux horaires ── */
+    .slots-section { display: flex; flex-direction: column; gap: 1rem; }
+    .slots-label {
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.62rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--primary);
+    }
+    .slots-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;
+    }
+    .slot-btn {
+      padding: 0.75rem 0.5rem;
+      background: rgba(245,230,211,0.04);
+      border: 1px solid rgba(245,230,211,0.1);
+      color: rgba(245,230,211,0.7);
+      font-family: var(--fb); font-weight: 400; font-size: 0.88rem;
+      cursor: none; transition: all 0.2s; text-align: center;
+    }
+    .slot-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(198,93,59,0.1); }
+    .slot-btn.selected { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .slot-btn.full { opacity: 0.3; pointer-events: none; text-decoration: line-through; }
+
+    /* ── Form réservation ── */
+    .booking-form { display: flex; flex-direction: column; gap: 0; }
+    .bform-field {
+      border-bottom: 1px solid rgba(245,230,211,0.1);
+      transition: border-color 0.2s;
+    }
+    .bform-field:focus-within { border-color: var(--primary); }
+    .bform-field label {
+      display: block;
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.58rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: rgba(245,230,211,0.3);
+      padding-top: 1.2rem; margin-bottom: 0.4rem;
+    }
+    .bform-field input {
+      width: 100%; background: transparent; border: none; outline: none;
+      font-family: var(--fb); font-weight: 300; font-size: 0.95rem;
+      color: var(--cream); padding-bottom: 1rem; caret-color: var(--primary);
+    }
+    .bform-field input::placeholder { color: rgba(245,230,211,0.2); }
+
+    .booking-cta {
+      margin-top: 1.5rem;
+    }
+
+    /* ── Confirmation ── */
+    .booking-confirm {
+      display: none; flex-direction: column; align-items: center;
+      text-align: center; padding: 2rem 1rem; gap: 1rem;
+    }
+    .confirm-check {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(198,93,59,0.15);
+      border: 1px solid var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .confirm-title {
+      font-family: var(--fd); font-weight: 900;
+      font-size: 1.8rem; text-transform: uppercase;
+      color: var(--cream); letter-spacing: -0.01em;
+    }
+    .confirm-detail {
+      font-family: var(--fb); font-weight: 300;
+      font-size: 0.9rem; color: var(--muted); line-height: 1.7;
+    }
+    .confirm-highlight { color: var(--primary); font-weight: 600; }
+
+    /* Stats band */
+    .intro-stats-band {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-top: 2px solid var(--dark); position: relative; z-index: 1;
+    }
+    .isb-item {
+      padding: 2.5rem 6rem 2.5rem 2.5rem;
+      border-right: 1px solid rgba(17,16,16,0.08);
+      display: flex; flex-direction: column; gap: 0.45rem;
+    }
+    .isb-item:last-child { border-right: none; }
+    .isb-n {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(2rem, 3vw, 3.5rem); line-height: 1; color: var(--dark);
+    }
+    .isb-n sup { font-size: 0.38em; vertical-align: super; color: var(--secondary); }
+    .isb-l {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 0.78rem; letter-spacing: 0.08em;
+      color: rgba(17,16,16,0.5);
+    }
+
+    /* ══════════════════════════════════════
+       GLOBAL CLASSES
+    ══════════════════════════════════════ */
+    .eyebrow {
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.72rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--primary);
+      margin-bottom: 1.8rem;
+    }
+    .h2-display {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(3.2rem, 5.5vw, 6.5rem);
+      line-height: 0.9; letter-spacing: -0.02em;
+      text-transform: uppercase; color: var(--dark);
+      margin-bottom: 2.4rem;
+    }
+    .h2-display em { font-style: normal; color: var(--primary); display: block; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 1rem;
+      background: var(--primary); color: #fff;
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.85rem; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 1rem 2.2rem;
+      text-decoration: none; border: none; cursor: none;
+      transition: background 0.2s, gap 0.25s;
+      width: fit-content; position: relative; overflow: hidden;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.12);
+      transform: translateX(-110%) skewX(-18deg);
+      transition: transform 0.4s ease;
+    }
+    .btn-primary:hover::before { transform: translateX(110%) skewX(-18deg); }
+    .btn-primary:hover { background: #ad4e30; gap: 1.5rem; }
+    .btn-primary:hover svg { transform: translateX(3px); }
+    .btn-primary svg { transition: transform 0.2s; }
+
+    /* ══════════════════════════════════════
+       SECTION MÉTHODE
+    ══════════════════════════════════════ */
+    .s-method {
+      background: var(--mid);
+      padding: 8rem 0;
+      position: relative; overflow: hidden;
+    }
+    .s-method::before {
+      content: 'MÉTHODE';
+      position: absolute; bottom: -4rem; left: -2rem;
+      font-family: var(--fd); font-weight: 900;
+      font-size: 18vw; color: transparent;
+      -webkit-text-stroke: 1px rgba(198,93,59,0.07);
+      user-select: none; pointer-events: none; white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+    .method-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 0 6rem 5rem;
+      border-bottom: 1px solid rgba(245,230,211,0.08);
+    }
+    .method-header-title {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(3rem, 5vw, 6rem);
+      text-transform: uppercase; letter-spacing: -0.02em;
+      color: var(--cream); line-height: 1;
+    }
+    .method-list { padding: 0 6rem; }
+    .method-item {
+      display: grid; grid-template-columns: 5rem 1fr 1fr;
+      gap: 0 4rem; padding: 4rem 0;
+      border-bottom: 1px solid rgba(245,230,211,0.06);
+      align-items: start;
+    }
+    .method-num {
+      font-family: var(--fd); font-weight: 400;
+      font-size: 0.7rem; letter-spacing: 0.2em;
+      color: var(--primary); padding-top: 0.4rem;
+    }
+    .method-title {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(2rem, 3.5vw, 3.8rem);
+      text-transform: uppercase; letter-spacing: -0.01em;
+      line-height: 0.95; color: var(--cream);
+    }
+    .method-desc {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 1rem; line-height: 1.85;
+      color: var(--muted); max-width: 40ch;
+      padding-top: 0.5rem;
+    }
+
+    /* ══════════════════════════════════════
+       SECTION COACH
+    ══════════════════════════════════════ */
+    .s-coach {
+      background: var(--dark);
+      display: grid; grid-template-columns: 1fr 1fr;
+      min-height: 90vh;
+    }
+    .coach-visual { position: relative; overflow: hidden; }
+    .coach-visual img { width:100%; height:100%; object-fit:cover; object-position:center 15%; display:block; will-change:transform; }
+    .coach-visual::after { content:''; position:absolute; inset:0; background:linear-gradient(to right, transparent 70%, var(--dark)); pointer-events:none; }
+    .coach-content { padding: 7rem 6rem 7rem 5rem; display:flex; flex-direction:column; justify-content:center; }
+    .coach-name {
+      font-family: var(--fd); font-weight: 900;
+      font-size: clamp(3rem, 5vw, 6rem);
+      text-transform: uppercase; letter-spacing: -0.02em;
+      line-height: 0.88; color: var(--cream); margin-bottom: 0.6rem;
+    }
+    .coach-title {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 0.9rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 3rem;
+    }
+    .coach-bio {
+      font-family: var(--fb); font-weight: 300;
+      font-size: 1rem; line-height: 1.9;
+      color: var(--muted); max-width: 42ch; margin-bottom: 3.5rem;
+    }
+    .coach-creds { display:flex; flex-direction:column; gap:0; border-top:1px solid rgba(245,230,211,0.1); }
+    .cred-item { display:flex; align-items:baseline; gap:1.5rem; padding:1.1rem 0; border-bottom:1px solid rgba(245,230,211,0.06); }
+    .cred-dot { width:5px; height:5px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:0.2rem; }
+    .cred-text { font-family:var(--fb); font-weight:300; font-size:0.9rem; letter-spacing:0.05em; color:rgba(245,230,211,0.55); }
+    .cred-text strong { font-weight:500; color:var(--cream); }
+
+    /* ══════════════════════════════════════
+       SECTION PROGRAMMES
+    ══════════════════════════════════════ */
+    .s-programs {
+      position: relative; overflow: hidden;
+      background:
+        radial-gradient(circle at bottom left, rgba(135,206,235,0.14) 0%, transparent 55%),
+        radial-gradient(circle at top right, rgba(198,93,59,0.07) 0%, transparent 45%),
+        #FFFFFF;
+    }
+    .s-programs::after {
+      content: '';
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(198,93,59,0.04) 0, rgba(198,93,59,0.04) 1px, transparent 1px, transparent 28px),
+        repeating-linear-gradient(-45deg, rgba(198,93,59,0.04) 0, rgba(198,93,59,0.04) 1px, transparent 1px, transparent 28px);
+      background-size: 56px 56px;
+    }
+    .programs-header {
+      padding: 5rem 6rem 3rem;
+      border-bottom: 1px solid rgba(17,16,16,0.08);
+      position: relative; z-index: 1;
+    }
+    .programs-intro {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem;
+    }
+    .programs-sub {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 1rem; line-height: 1.75;
+      color: rgba(17,16,16,0.55); max-width: 38ch;
+      padding-bottom: 0.5rem;
+    }
+
+    .prog-viewport { overflow: hidden; width: 100%; position: relative; z-index: 1; }
+
+    @media (min-width: 901px) {
+      .s-programs { min-height: 100vh; display: flex; flex-direction: column; padding: 0; }
+      .programs-header { flex-shrink: 0; }
+      .prog-viewport { flex: 1; display: flex; align-items: center; }
+      .prog-track { display: flex; flex-direction: row; width: 300vw; align-items: stretch; gap: 0; will-change: transform; }
+      .prog-slide { width: 100vw; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 3.5rem 4rem 4rem; }
+      .prog-item { width: 100%; max-width: 520px; }
+    }
+
+    .prog-item {
+      display: flex; flex-direction: column; gap: 1.2rem;
+      padding: 2.5rem 2.2rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(198,93,59,0.22);
+      background:
+        radial-gradient(circle at 18% 14%, rgba(198,93,59,0.14) 0%, rgba(198,93,59,0.02) 45%, rgba(0,0,0,0) 70%),
+        linear-gradient(155deg, #1f1b18 0%, #151311 55%, #0f0e0d 100%);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(245,230,211,0.03);
+      overflow: hidden; cursor: none;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+    .prog-item:hover { transform: translateY(-5px); border-color: rgba(198,93,59,0.55); }
+    .prog-num { font-family:var(--fd); font-weight:400; font-size:0.65rem; letter-spacing:0.2em; color:var(--primary); align-self:start; border:1px solid rgba(198,93,59,0.45); padding:0.3rem 0.5rem; }
+    .prog-name { font-family:var(--fd); font-weight:900; font-size:clamp(1.8rem, 2.5vw, 2.8rem); text-transform:uppercase; letter-spacing:-0.01em; line-height:1; color:var(--cream); }
+    .prog-divider { width:100%; height:1px; background:rgba(198,93,59,0.15); flex-shrink:0; }
+    .prog-details { display:flex; flex-direction:column; gap:1rem; flex:1; }
+    .prog-desc { font-family:var(--fb); font-weight:400; font-size:0.95rem; line-height:1.75; color:rgba(245,230,211,0.75); }
+    .prog-tags { display:flex; gap:0.6rem; flex-wrap:wrap; }
+    .prog-tag { font-family:var(--fd); font-weight:700; font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--secondary); border:1px solid rgba(135,206,235,0.35); padding:0.3rem 0.65rem; }
+    .prog-price { font-family:var(--fd); font-weight:900; font-size:clamp(1.8rem, 2.4vw, 2.6rem); color:var(--cream); margin-top:auto; padding-top:1rem; border-top:1px solid rgba(245,230,211,0.08); }
+    .prog-price span { font-family:var(--fb); font-weight:300; font-size:0.8rem; letter-spacing:0.15em; color:rgba(245,230,211,0.45); display:inline; margin-left:0.3rem; text-transform:uppercase; }
+    .prog-nav { display:flex; justify-content:center; align-items:center; gap:0.6rem; padding:2rem; flex-shrink:0; position:relative; z-index:1; }
+    .prog-dot { width:6px; height:6px; border-radius:50%; background:rgba(17,16,16,0.18); transition:background 0.3s,transform 0.3s; }
+    .prog-dot.active { background:var(--primary); transform:scale(1.4); }
+
+    /* ══════════════════════════════════════
+       SECTION TÉMOIGNAGES — style Google
+    ══════════════════════════════════════ */
+    .s-results {
+      background: var(--mid);
+      padding: 8rem 6rem;
+      position: relative; overflow: hidden;
+    }
+    .results-header {
+      display: flex; align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 5rem;
+    }
+    .results-header .h2-display { color: var(--cream); margin-bottom: 0; }
+
+    /* Score global */
+    .results-score {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;
+    }
+    .score-big {
+      font-family: var(--fd); font-weight: 900;
+      font-size: 4.5rem; line-height: 1; color: var(--cream);
+    }
+    .score-stars { display: flex; gap: 0.2rem; }
+    .score-star { color: #F4BC1C; font-size: 1.3rem; }
+    .score-count {
+      font-family: var(--fb); font-weight: 300;
+      font-size: 0.78rem; letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    /* Grille témoignages */
+    .testimonials {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .testi-item {
+      background: rgba(245,230,211,0.03);
+      border: 1px solid rgba(245,230,211,0.08);
+      padding: 2.2rem;
+      border-radius: 2px;
+      display: flex; flex-direction: column; gap: 1.2rem;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .testi-item:hover { border-color: rgba(198,93,59,0.3); background: rgba(198,93,59,0.04); }
+
+    .testi-header {
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .testi-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(198,93,59,0.12);
+      border: 1px solid rgba(198,93,59,0.3);
+      overflow: hidden; flex-shrink: 0;
+    }
+    .testi-avatar-initials {
+      width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+      font-family:var(--fd); font-weight:700; font-size:0.85rem; color:var(--primary);
+    }
+    .testi-info { display: flex; flex-direction: column; gap: 0.15rem; }
+    .testi-name { font-family:var(--fd); font-weight:700; font-size:0.9rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--cream); }
+    .testi-meta { font-family:var(--fb); font-weight:300; font-size:0.72rem; color:rgba(245,230,211,0.4); }
+
+    .testi-stars { display: flex; gap: 0.15rem; }
+    .testi-star { color: #F4BC1C; font-size: 0.85rem; }
+
+    .testi-text {
+      font-family: var(--fb); font-weight: 400;
+      font-size: 0.93rem; line-height: 1.65;
+      color: rgba(245,230,211,0.7); flex: 1;
+    }
+
+    .testi-program {
+      font-family: var(--fd); font-weight: 700;
+      font-size: 0.6rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--primary);
+      border-left: 2px solid var(--primary);
+      padding-left: 0.7rem;
+    }
+
+    /* ══════════════════════════════════════
+       PHOTO PLEINE LARGEUR
+    ══════════════════════════════════════ */
+    .s-fullimg { position:relative; height:55vh; overflow:hidden; }
+    .s-fullimg img { width:100%; height:100%; object-fit:cover; object-position:center 40%; display:block; will-change:transform; }
+    .s-fullimg::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom, var(--mid) 0%, transparent 20%, transparent 80%, var(--dark) 100%); }
+    .fullimg-label { position:absolute; bottom:3rem; left:6rem; z-index:2; font-family:var(--fd); font-weight:900; font-size:clamp(2.5rem, 5vw, 6rem); text-transform:uppercase; letter-spacing:-0.01em; color:transparent; -webkit-text-stroke:1.5px rgba(245,230,211,0.5); }
+
+    /* ══════════════════════════════════════
+       CONTACT
+    ══════════════════════════════════════ */
+    .s-contact { background:var(--dark); padding:8rem 6rem; display:grid; grid-template-columns:1fr 1fr; gap:0 6rem; }
+    .contact-left .eyebrow { margin-bottom:2rem; }
+    .contact-heading { font-family:var(--fd); font-weight:900; font-size:clamp(3rem, 5vw, 6rem); text-transform:uppercase; letter-spacing:-0.02em; line-height:0.9; color:var(--cream); margin-bottom:2.5rem; }
+    .contact-heading em { font-style:normal; color:var(--primary); display:block; }
+    .contact-body { font-family:var(--fb); font-weight:400; font-size:1rem; line-height:1.85; color:var(--muted); max-width:38ch; margin-bottom:3.5rem; }
+    .contact-info { display:flex; flex-direction:column; gap:0; }
+    .contact-line { display:flex; align-items:center; gap:1.2rem; padding:1.2rem 0; border-bottom:1px solid rgba(245,230,211,0.07); font-family:var(--fb); font-weight:400; font-size:0.9rem; color:var(--muted); }
+    .contact-line strong { color:var(--cream); font-weight:500; }
+    .contact-line-dot { width:4px; height:4px; border-radius:50%; background:var(--primary); flex-shrink:0; }
+    .contact-right { display:flex; flex-direction:column; justify-content:flex-end; }
+    .form-field { margin-bottom:0; border-bottom:1px solid rgba(245,230,211,0.12); transition:border-color 0.2s; }
+    .form-field:focus-within { border-color:var(--primary); }
+    .form-field label { display:block; font-family:var(--fd); font-weight:700; font-size:0.62rem; letter-spacing:0.3em; text-transform:uppercase; color:rgba(245,230,211,0.3); padding-top:1.8rem; margin-bottom:0.5rem; }
+    .form-field input, .form-field textarea { width:100%; background:transparent; border:none; outline:none; font-family:var(--fb); font-weight:300; font-size:0.95rem; color:var(--cream); padding-bottom:1.2rem; resize:none; caret-color:var(--primary); }
+    .form-field textarea { min-height:80px; }
+    .form-field input::placeholder, .form-field textarea::placeholder { color:rgba(245,230,211,0.2); }
+    .form-submit { margin-top:3rem; display:flex; align-items:center; justify-content:space-between; }
+    .form-note { font-family:var(--fb); font-weight:300; font-size:0.75rem; letter-spacing:0.08em; color:rgba(245,230,211,0.25); }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    .footer { background:var(--dark); border-top:1px solid rgba(245,230,211,0.06); padding:3rem 6rem; display:flex; align-items:center; justify-content:space-between; }
+    .footer-brand { font-family:var(--fd); font-weight:900; font-size:1.2rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--cream); }
+    .footer-brand span { color:var(--primary); }
+    .footer-copy { font-family:var(--fb); font-weight:300; font-size:0.72rem; letter-spacing:0.1em; color:rgba(245,230,211,0.22); text-transform:uppercase; }
+    .footer-links { display:flex; gap:2rem; }
+    .footer-link { font-family:var(--fd); font-weight:700; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:rgba(245,230,211,0.3); text-decoration:none; transition:color 0.2s; }
+    .footer-link:hover { color:var(--primary); }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .navbar { padding: 1.2rem 1.5rem; }
+      .booking-section { grid-template-columns: 1fr; }
+      .booking-left { padding: 3.5rem 2rem; border-right: none; border-bottom: 1px solid rgba(17,16,16,0.08); }
+      .booking-right { padding: 2.5rem 2rem; }
+      .slots-grid { grid-template-columns: repeat(2, 1fr); }
+      .intro-topbar { padding: 2rem; }
+      .intro-stats-band { grid-template-columns: repeat(2, 1fr); }
+      .isb-item { padding: 1.8rem 2rem; }
+      .isb-item:nth-child(2) { border-right: none; }
+      .method-header, .method-list { padding-left: 2rem; padding-right: 2rem; }
+      .method-item { grid-template-columns: 3.5rem 1fr; gap: 2rem; }
+      .method-desc { grid-column: 2; padding-top: 0; }
+      .s-coach { grid-template-columns: 1fr; }
+      .coach-visual { min-height: 55vw; }
+      .coach-visual::after { background: linear-gradient(to bottom, transparent 70%, var(--dark)); }
+      .coach-content { padding: 4rem 2rem; }
+      .s-programs { padding: 5rem 0 0; min-height: unset !important; display: block !important; }
+      .programs-header { padding: 0 2rem 3rem; }
+      .programs-intro { flex-direction: column; gap: 1rem; }
+      .prog-viewport { padding: 0 2rem; overflow: visible !important; }
+      .prog-track { display: grid !important; grid-template-columns: 1fr !important; width: 100% !important; gap: 1.2rem; transform: none !important; }
+      .prog-slide { width: 100% !important; display: block !important; padding: 0 !important; }
+      .prog-item { max-width: 100% !important; border-radius: 1.2rem; padding: 1.8rem; }
+      .prog-nav { padding: 1.5rem 2rem 3rem; }
+      .testimonials { grid-template-columns: 1fr; }
+      .s-results { padding: 6rem 2rem; }
+      .results-header { flex-direction: column; align-items: flex-start; gap: 2rem; }
+      .s-contact { grid-template-columns: 1fr; padding: 6rem 2rem; gap: 4rem; }
+      .footer { padding: 2.5rem 2rem; flex-direction: column; gap: 1.5rem; text-align: center; }
+      .hero-title { font-size: clamp(4rem, 18vw, 9rem); }
+      .fullimg-label { left: 2rem; }
+    }
+
+    @media (min-width: 601px) and (max-width: 900px) {
+      .prog-track { grid-template-columns: repeat(2, 1fr) !important; }
+      .testimonials { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Curseur -->
+  <div class="cursor" id="cur"></div>
+  <div class="cursor-ring" id="ring"></div>
+
+  <!-- ══════ NAVBAR ══════ -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="nav-brand">Iron<span>Forge</span></a>
+    <button class="burger-btn" id="burgerBtn" aria-label="Menu">
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+    </button>
+  </nav>
+
+  <div class="nav-overlay" id="navOverlay">
+    <ul class="nav-links">
+      <li><a href="#booking" id="navClose1">Réserver</a></li>
+      <li><a href="#coach" id="navClose2">Coach</a></li>
+      <li><a href="#programmes" id="navClose3">Programmes</a></li>
+      <li><a href="#contact" id="navClose4">Contact</a></li>
+    </ul>
+    <div class="nav-overlay-sub">
+      <a href="#">Instagram</a>
+      <a href="#">Mentions légales</a>
+    </div>
+  </div>
+
+  <!-- ══════ HERO ══════ -->
+  <section class="hero">
+    <div class="hero-line"></div>
+
+    <h1 class="hero-title" aria-label="Santé et Bien-Être">
+      <span class="word sante-word"></span>
+      <span class="word-break"></span>
+      <span class="word bienetre-word bienetre"></span>
+    </h1>
+
+    <div class="island-wrapper">
+      <img
+        src="dzd.webp"
+        alt="Studio Iron Forge — Bien-Être & Performance Paris"
+        width="1920" height="1080"
+        fetchpriority="high"
+        decoding="async" />
+    </div>
+  </section>
+
+  <!-- ══════ INTRO + RÉSERVATION ══════ -->
+  <section class="s-intro" id="booking">
+
+    <div class="intro-topbar">
+      <div class="eyebrow" style="margin-bottom:0">Première Séance Offerte</div>
+      <div class="intro-topbar-meta">Paris · Est. 2024 · Bien-Être</div>
+    </div>
+
+    <div class="booking-section">
+
+      <!-- Gauche : texte -->
+      <div class="booking-left">
+        <div>
+          <h2 class="booking-headline">
+            Réserve<br/>ta<br/><em>Séance</em>
+          </h2>
+          <p class="booking-desc">
+            30 minutes offertes pour faire le point sur ton mode de vie, tes objectifs et définir ensemble le meilleur point de départ. Sans engagement, sans pression.
+          </p>
+          <div class="booking-features">
+            <div class="bf-item">
+              <div class="bf-dot"></div>
+              <div class="bf-text"><strong>Bilan complet</strong> offert — condition physique & objectifs</div>
+            </div>
+            <div class="bf-item">
+              <div class="bf-dot"></div>
+              <div class="bf-text"><strong>Aucun engagement</strong> — annulation libre jusqu'à 24h avant</div>
+            </div>
+            <div class="bf-item">
+              <div class="bf-dot"></div>
+              <div class="bf-text"><strong>Réponse confirmée</strong> sous 1h par email</div>
+            </div>
+            <div class="bf-item">
+              <div class="bf-dot"></div>
+              <div class="bf-text">En présentiel — <strong>Paris 11ème</strong>, studio privé</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Droite : calendrier interactif -->
+      <div class="booking-right" id="bookingWidget">
+
+        <!-- Calendrier -->
+        <div class="cal-header">
+          <div class="cal-month" id="calMonth">Juin 2025</div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev">&#8249;</button>
+            <button class="cal-nav-btn" id="calNext">&#8250;</button>
+          </div>
+        </div>
+
+        <div class="cal-grid-days" id="calGrid">
+          <!-- Jours labels -->
+          <div class="cal-day-label">LU</div>
+          <div class="cal-day-label">MA</div>
+          <div class="cal-day-label">ME</div>
+          <div class="cal-day-label">JE</div>
+          <div class="cal-day-label">VE</div>
+          <div class="cal-day-label">SA</div>
+          <div class="cal-day-label">DI</div>
+        </div>
+
+        <!-- Créneaux (cachés par défaut) -->
+        <div class="slots-section" id="slotsSection" style="display:none;">
+          <div class="slots-label" id="slotsLabel">Créneaux disponibles</div>
+          <div class="slots-grid" id="slotsGrid"></div>
+        </div>
+
+        <!-- Formulaire (caché par défaut) -->
+        <div class="booking-form" id="bookingForm" style="display:none;">
+          <div class="bform-field">
+            <label>Prénom &amp; Nom</label>
+            <input type="text" id="bfName" placeholder="Thomas Martin" />
+          </div>
+          <div class="bform-field">
+            <label>Email</label>
+            <input type="email" id="bfEmail" placeholder="thomas@example.com" />
+          </div>
+        </div>
+
+        <div class="booking-cta" id="bookingCta" style="display:none;">
+          <button class="btn-primary" id="confirmBtn" style="width:100%;justify-content:center;">
+            Confirmer la réservation
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+              <path d="M0 6H14M9 1L14 6L9 11" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Confirmation -->
+        <div class="booking-confirm" id="bookingConfirm">
+          <div class="confirm-check">✓</div>
+          <div class="confirm-title">Réservé !</div>
+          <div class="confirm-detail">
+            Ton bilan offert est confirmé pour le<br/>
+            <span class="confirm-highlight" id="confirmDate">—</span><br/>
+            Un email de confirmation arrive dans quelques minutes.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="intro-stats-band">
+      <div class="isb-item">
+        <div class="isb-n">12<sup>sem</sup></div>
+        <div class="isb-l">Durée programme</div>
+      </div>
+      <div class="isb-item">
+        <div class="isb-n">3<sup>×</sup></div>
+        <div class="isb-l">Sessions / semaine</div>
+      </div>
+      <div class="isb-item">
+        <div class="isb-n">2K<sup>+</sup></div>
+        <div class="isb-l">Membres accompagnés</div>
+      </div>
+      <div class="isb-item">
+        <div class="isb-n">100<sup>%</sup></div>
+        <div class="isb-l">Sur mesure</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══════ MÉTHODE ══════ -->
+  <section class="s-method">
+    <div class="method-header">
+      <div class="eyebrow">Notre approche</div>
+      <div class="method-header-title">La Méthode</div>
+    </div>
+    <div class="method-list">
+      <div class="method-item">
+        <div class="method-num">01</div>
+        <div class="method-title">Bilan<br/>Holistique</div>
+        <p class="method-desc">Avant tout programme, un bilan complet : condition physique, mobilité, habitudes de vie, niveaux de stress et objectifs santé. On part de toi, pas d'un modèle générique.</p>
+      </div>
+      <div class="method-item">
+        <div class="method-num">02</div>
+        <div class="method-title">Programme<br/>Sur Mesure</div>
+        <p class="method-desc">Muscle, souplesse, récupération, nutrition — chaque plan est construit autour de ta réalité. L'équilibre entre effort et régénération est aussi important que l'entraînement lui-même.</p>
+      </div>
+      <div class="method-item">
+        <div class="method-num">03</div>
+        <div class="method-title">Suivi &amp;<br/>Bien-Être Global</div>
+        <p class="method-desc">Le corps change, le programme évolue avec lui. Feedback hebdomadaire, ajustements en temps réel, attention portée au sommeil, à l'énergie et à la qualité de vie — pas seulement aux chiffres.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ COACH ══════ -->
+  <section class="s-coach" id="coach">
+    <div class="coach-visual">
+      <img src="images/coach-portrait.webp" alt="Portrait du coach Mathieu Laurent" width="900" height="1200" loading="lazy" decoding="async" />
+    </div>
+    <div class="coach-content">
+      <div class="eyebrow">Le coach</div>
+      <h2 class="coach-name">Mathieu<br/>Laurent</h2>
+      <div class="coach-title">Coach Bien-Être & Performance — Préparateur Physique</div>
+      <p class="coach-bio">10 ans passés à accompagner des personnes vers une meilleure version d'elles-mêmes — plus fortes, plus saines, plus équilibrées. Ancien athlète de compétition reconverti dans l'accompagnement global, Mathieu marie développement musculaire, santé durable et bien-être mental dans chaque suivi.</p>
+      <div class="coach-creds">
+        <div class="cred-item"><div class="cred-dot"></div><div class="cred-text"><strong>BPJEPS AF</strong> — Brevet Professionnel</div></div>
+        <div class="cred-item"><div class="cred-dot"></div><div class="cred-text"><strong>Certified Strength & Conditioning Specialist</strong> — NSCA</div></div>
+        <div class="cred-item"><div class="cred-dot"></div><div class="cred-text"><strong>Nutrition & Bien-Être</strong> — Formation spécialisée</div></div>
+        <div class="cred-item"><div class="cred-dot"></div><div class="cred-text"><strong>Spécialisation</strong> — Muscle, Mobilité, Rééquilibrage</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PROGRAMMES ══════ -->
+  <section class="s-programs" id="programmes">
+    <div class="programs-header">
+      <div class="eyebrow">Ce que tu choisis</div>
+      <div class="programs-intro">
+        <h2 class="h2-display" style="color:var(--dark);margin-bottom:0">Programmes</h2>
+        <p class="programs-sub">
+          Trois formules d'accompagnement, du suivi 100% en ligne au coaching individuel complet. Chaque programme est construit autour de tes objectifs et de ton rythme de vie.
+        </p>
+      </div>
+    </div>
+
+    <div class="prog-viewport">
+      <div class="prog-track">
+        <div class="prog-slide">
+          <div class="prog-item">
+            <div class="prog-num">01</div>
+            <div class="prog-name">Online<br/>Bien-Être</div>
+            <div class="prog-divider"></div>
+            <div class="prog-details">
+              <p class="prog-desc">Programme personnalisé à distance. Entraînement, conseils nutrition, check-in hebdomadaire et ajustements mensuels pour progresser à ton rythme, depuis chez toi.</p>
+              <div class="prog-tags">
+                <span class="prog-tag">12 semaines</span>
+                <span class="prog-tag">À distance</span>
+                <span class="prog-tag">Tous niveaux</span>
+              </div>
+            </div>
+            <div class="prog-price">149€<span>/ mois</span></div>
+          </div>
+        </div>
+        <div class="prog-slide">
+          <div class="prog-item">
+            <div class="prog-num">02</div>
+            <div class="prog-name">Coaching<br/>Hybride</div>
+            <div class="prog-divider"></div>
+            <div class="prog-details">
+              <p class="prog-desc">2 séances mensuelles en présentiel + suivi complet en ligne. Muscle, souplesse et bien-être travaillés ensemble, avec un bilan mensuel approfondi pour mesurer ta progression.</p>
+              <div class="prog-tags">
+                <span class="prog-tag">Présentiel + online</span>
+                <span class="prog-tag">Bilan mensuel</span>
+              </div>
+            </div>
+            <div class="prog-price">290€<span>/ mois</span></div>
+          </div>
+        </div>
+        <div class="prog-slide">
+          <div class="prog-item">
+            <div class="prog-num">03</div>
+            <div class="prog-name">Coaching<br/>Premium</div>
+            <div class="prog-divider"></div>
+            <div class="prog-details">
+              <p class="prog-desc">Accompagnement complet et illimité. Séances hebdomadaires, nutrition, sommeil, récupération, analyse vidéo. Pour ceux qui veulent tout transformer — corps et habitudes de vie.</p>
+              <div class="prog-tags">
+                <span class="prog-tag">Illimité</span>
+                <span class="prog-tag">Nutrition incluse</span>
+                <span class="prog-tag">Suivi bien-être</span>
+              </div>
+            </div>
+            <div class="prog-price">490€<span>/ mois</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-nav" id="progNav">
+      <div class="prog-dot active" data-index="0"></div>
+      <div class="prog-dot" data-index="1"></div>
+      <div class="prog-dot" data-index="2"></div>
+    </div>
+  </section>
+
+  <!-- ══════ PHOTO PLEINE LARGEUR ══════ -->
+  <div class="s-fullimg">
+    <img src="images/gimp-ambience.webp" alt="Ambiance studio Iron Forge" width="1920" height="800" loading="lazy" decoding="async" />
+    <div class="fullimg-label">Paris — 2024</div>
+  </div>
+
+  <!-- ══════ TÉMOIGNAGES — style Google ══════ -->
+  <section class="s-results">
+    <div class="results-header">
+      <div>
+        <div class="eyebrow" style="color:var(--primary);margin-bottom:1rem">Avis clients</div>
+        <h2 class="h2-display" style="color:var(--cream);margin-bottom:0">Résultats</h2>
+      </div>
+      <div class="results-score">
+        <div class="score-big">4.9</div>
+        <div class="score-stars">
+          <span class="score-star">★</span><span class="score-star">★</span><span class="score-star">★</span><span class="score-star">★</span><span class="score-star">★</span>
+        </div>
+        <div class="score-count">Basé sur 84 avis · Google</div>
+      </div>
+    </div>
+
+    <div class="testimonials">
+
+      <div class="testi-item">
+        <div class="testi-header">
+          <div class="testi-avatar"><div class="testi-avatar-initials">TM</div></div>
+          <div class="testi-info">
+            <div class="testi-name">Thomas M.</div>
+            <div class="testi-meta">il y a 2 semaines</div>
+          </div>
+        </div>
+        <div class="testi-stars"><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span></div>
+        <p class="testi-text">En 3 mois j'ai retrouvé une énergie que je n'avais plus depuis des années. Muscle et bien-être en même temps — c'est vraiment possible avec Mathieu. Très à l'écoute, jamais dans le forcing.</p>
+        <div class="testi-program">Coaching Premium — 8 mois</div>
+      </div>
+
+      <div class="testi-item">
+        <div class="testi-header">
+          <div class="testi-avatar"><div class="testi-avatar-initials">SL</div></div>
+          <div class="testi-info">
+            <div class="testi-name">Sarah L.</div>
+            <div class="testi-meta">il y a 1 mois</div>
+          </div>
+        </div>
+        <div class="testi-stars"><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span></div>
+        <p class="testi-text">Première fois que je comprends vraiment mon corps. L'approche globale — entraînement, nutrition, récupération — a tout changé. Je recommande sans hésiter à n'importe qui.</p>
+        <div class="testi-program">Coaching Hybride — 5 mois</div>
+      </div>
+
+      <div class="testi-item">
+        <div class="testi-header">
+          <div class="testi-avatar"><div class="testi-avatar-initials">AR</div></div>
+          <div class="testi-info">
+            <div class="testi-name">Antoine R.</div>
+            <div class="testi-meta">il y a 3 mois</div>
+          </div>
+        </div>
+        <div class="testi-stars"><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span></div>
+        <p class="testi-text">Après deux blessures et des années sans progression, Iron Forge m'a remis sur les rails. Structuré, bienveillant, efficace. Le suivi online est sérieux et vraiment personnalisé.</p>
+        <div class="testi-program">Online Bien-Être — 12 semaines</div>
+      </div>
+
+      <div class="testi-item">
+        <div class="testi-header">
+          <div class="testi-avatar"><div class="testi-avatar-initials">CB</div></div>
+          <div class="testi-info">
+            <div class="testi-name">Clara B.</div>
+            <div class="testi-meta">il y a 3 mois</div>
+          </div>
+        </div>
+        <div class="testi-stars"><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span></div>
+        <p class="testi-text">−11 kg en 16 semaines sans sacrifier ma santé ni mon énergie. Un rééquilibrage complet, pas un régime brutal. Le programme Premium vaut vraiment chaque euro.</p>
+        <div class="testi-program">Coaching Premium — 4 mois</div>
+      </div>
+
+      <div class="testi-item">
+        <div class="testi-header">
+          <div class="testi-avatar"><div class="testi-avatar-initials">JD</div></div>
+          <div class="testi-info">
+            <div class="testi-name">Julie D.</div>
+            <div class="testi-meta">il y a 5 mois</div>
+          </div>
+        </div>
+        <div class="testi-stars"><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span></div>
+        <p class="testi-text">J'avais peur de ne pas tenir dans le temps. Mathieu a su adapter le rythme quand la vie s'est compliquée. 6 mois plus tard, mes habitudes ont radicalement changé — en mieux.</p>
+        <div class="testi-program">Coaching Hybride — 6 mois</div>
+      </div>
+
+      <div class="testi-item">
+        <div class="testi-header">
+          <div class="testi-avatar"><div class="testi-avatar-initials">MK</div></div>
+          <div class="testi-info">
+            <div class="testi-name">Marc K.</div>
+            <div class="testi-meta">il y a 6 mois</div>
+          </div>
+        </div>
+        <div class="testi-stars"><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span><span class="testi-star">★</span></div>
+        <p class="testi-text">Le bilan initial m'a ouvert les yeux sur des choses que je faisais mal depuis des années. Le plan sur mesure a tout changé. Je suis plus fort, moins stressé et je dors mieux.</p>
+        <div class="testi-program">Online Bien-Être — 4 mois</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ CONTACT ══════ -->
+  <section class="s-contact" id="contact">
+    <div class="contact-left">
+      <div class="eyebrow">Prendre contact</div>
+      <h2 class="contact-heading">Première<br/><em>Séance</em>Offerte</h2>
+      <p class="contact-body">30 minutes pour faire le point sur ton mode de vie, tes objectifs santé et définir ensemble le meilleur point de départ. Sans engagement, sans pression.</p>
+      <div class="contact-info">
+        <div class="contact-line"><div class="contact-line-dot"></div><div><strong>Paris 11ème</strong> — Studio privé</div></div>
+        <div class="contact-line"><div class="contact-line-dot"></div><div><strong>contact@ironforge.fr</strong></div></div>
+        <div class="contact-line"><div class="contact-line-dot"></div><div>Réponse sous <strong>24h</strong> garantie</div></div>
+      </div>
+    </div>
+    <div class="contact-right">
+      <div class="form-field"><label>Prénom &amp; Nom</label><input type="text" placeholder="Thomas Martin" /></div>
+      <div class="form-field"><label>Email</label><input type="email" placeholder="thomas@example.com" /></div>
+      <div class="form-field"><label>Programme visé</label><input type="text" placeholder="Online, Hybride, Premium..." /></div>
+      <div class="form-field"><label>Ton objectif bien-être en une phrase</label><textarea placeholder="Ex. Retrouver de l'énergie, prendre du muscle, me sentir mieux dans mon corps..."></textarea></div>
+      <div class="form-submit">
+        <span class="form-note">Aucun spam. Jamais.</span>
+        <button class="btn-primary" type="button">Envoyer <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M0 6H14M9 1L14 6L9 11" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ FOOTER ══════ -->
+  <footer class="footer">
+    <div class="footer-brand">Iron<span>Forge</span></div>
+    <div class="footer-copy">© 2024 Iron Forge — Tous droits réservés</div>
+    <div class="footer-links">
+      <a href="#" class="footer-link">Instagram</a>
+      <a href="#" class="footer-link">Mentions légales</a>
+      <a href="#contact" class="footer-link">Contact</a>
+    </div>
+  </footer>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ── Curseur ── */
+    const cur = document.getElementById('cur');
+    const ring = document.getElementById('ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+    });
+    (function animRing() {
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animRing);
+    })();
+    document.querySelectorAll('a, button, .prog-item, .cal-day, .slot-btn').forEach(el => {
+      el.addEventListener('mouseenter', () => { cur.style.width='16px'; cur.style.height='16px'; ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='var(--primary)'; });
+      el.addEventListener('mouseleave', () => { cur.style.width='10px'; cur.style.height='10px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(198,93,59,0.5)'; });
+    });
+
+    /* ── Navbar scroll ── */
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    /* ── Burger menu ── */
+    const burgerBtn = document.getElementById('burgerBtn');
+    const navOverlay = document.getElementById('navOverlay');
+    burgerBtn.addEventListener('click', () => {
+      burgerBtn.classList.toggle('open');
+      navOverlay.classList.toggle('open');
+      document.body.style.overflow = navOverlay.classList.contains('open') ? 'hidden' : '';
+    });
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => {
+        burgerBtn.classList.remove('open');
+        navOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+
+    /* ── Split lettres hero ── */
+    function splitLetters(sel, word) {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      el.innerHTML = word.split('').map(ch =>
+        `<span class="char" style="opacity:0;transform:translateY(70px);display:inline-block;">${ch === ' ' ? '&nbsp;' : ch}</span>`
+      ).join('');
+    }
+    splitLetters('.sante-word', 'SANTÉ');
+    splitLetters('.bienetre-word', 'BIEN-ÊTRE');
+
+    /* ── Hero entry ── */
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.fromTo('.island-wrapper', { opacity:0, scale:1.06 }, { opacity:1, scale:1, duration:1.4, ease:'power2.out' })
+      .to('.hero-line', { opacity:1, duration:0.5 }, '-=1.0')
+      .to('.hero-title', { opacity:1, duration:0.01 }, '-=0.5')
+      .to('.sante-word .char', { opacity:1, y:0, duration:0.55, stagger:0.07, ease:'power2.out' }, '-=0.3')
+      .to('.bienetre-word .char', { opacity:1, y:0, duration:0.55, stagger:0.05, ease:'power2.out' }, '-=0.35');
+
+    /* ── Hero parallax ── */
+    gsap.to('.hero-title', { yPercent:-170, ease:'none', scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:0.8} });
+    gsap.to('.island-wrapper', { yPercent:18, ease:'none', scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:0.8} });
+    gsap.to('.island-wrapper img', { scale:1.12, ease:'none', scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:0.8} });
+    gsap.to('.hero-line', { opacity:0, ease:'none', scrollTrigger:{trigger:'.hero',start:'top top',end:'25% top',scrub:0.6} });
+
+    /* ── Barre intro ── */
+    gsap.fromTo('.s-intro::before', { scaleX:0 }, { scaleX:1, duration:0.9, ease:'power3.out', scrollTrigger:{trigger:'.s-intro',start:'top 90%',toggleActions:'play none none reverse'} });
+
+    /* ── Booking reveal ── */
+    gsap.fromTo('.booking-headline', { opacity:0, y:40 }, { opacity:1, y:0, duration:0.9, ease:'power3.out', scrollTrigger:{trigger:'.booking-left',start:'top 82%',toggleActions:'play none none reverse'} });
+    gsap.fromTo('.booking-desc', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7, delay:0.15, scrollTrigger:{trigger:'.booking-left',start:'top 82%',toggleActions:'play none none reverse'} });
+    gsap.utils.toArray('.bf-item').forEach((el,i) => {
+      gsap.fromTo(el, { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5, delay:0.2+i*0.1, scrollTrigger:{trigger:'.booking-features',start:'top 85%',toggleActions:'play none none reverse'} });
+    });
+    gsap.fromTo('.booking-right', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.8, delay:0.2, scrollTrigger:{trigger:'.booking-section',start:'top 80%',toggleActions:'play none none reverse'} });
+
+    /* ── Stats band ── */
+    gsap.utils.toArray('.isb-item').forEach((el,i) => {
+      gsap.fromTo(el, { opacity:0, y:22 }, { opacity:1, y:0, duration:0.6, delay:i*0.1, ease:'power2.out', scrollTrigger:{trigger:'.intro-stats-band',start:'top 88%',toggleActions:'play none none reverse'} });
+    });
+
+    /* ── Méthode ── */
+    gsap.utils.toArray('.method-item').forEach((el,i) => {
+      gsap.fromTo(el, { opacity:0, x:-30 }, { opacity:1, x:0, duration:0.8, delay:i*0.12, scrollTrigger:{trigger:el,start:'top 85%',toggleActions:'play none none reverse'} });
+    });
+
+    /* ── Coach ── */
+    gsap.fromTo('.coach-name', { opacity:0, y:40 }, { opacity:1, y:0, duration:0.9, scrollTrigger:{trigger:'.s-coach',start:'top 82%',toggleActions:'play none none reverse'} });
+    gsap.fromTo('.coach-bio', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7, delay:0.2, scrollTrigger:{trigger:'.s-coach',start:'top 82%',toggleActions:'play none none reverse'} });
+    gsap.utils.toArray('.cred-item').forEach((el,i) => {
+      gsap.fromTo(el, { opacity:0, x:16 }, { opacity:1, x:0, duration:0.6, delay:0.3+i*0.1, scrollTrigger:{trigger:'.coach-creds',start:'top 85%',toggleActions:'play none none reverse'} });
+    });
+    gsap.fromTo('.coach-visual img', { scale:1.08 }, { scale:1, duration:1.2, ease:'power2.out', scrollTrigger:{trigger:'.s-coach',start:'top 80%',toggleActions:'play none none reverse'} });
+
+    /* ── Programmes scroll horizontal (desktop) ── */
+    ScrollTrigger.matchMedia({
+      "(min-width: 901px)": function () {
+        const progTrack = document.querySelector('.prog-track');
+        const progNav   = document.getElementById('progNav');
+        const dots      = progNav ? progNav.querySelectorAll('.prog-dot') : [];
+        const numSlides = 3;
+        function updateDots(p) {
+          const idx = Math.round(p * (numSlides - 1));
+          dots.forEach((d,i) => d.classList.toggle('active', i === idx));
+        }
+        gsap.to(progTrack, {
+          x: () => -(window.innerWidth * (numSlides - 1)),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.s-programs', start: 'top top',
+            end: () => `+=${window.innerWidth * (numSlides - 1)}`,
+            pin: true, scrub: 1, invalidateOnRefresh: true,
+            onUpdate: (self) => updateDots(self.progress),
+          }
+        });
+      }
+    });
+
+    /* ── Programmes mobile reveal ── */
+    ScrollTrigger.matchMedia({
+      "(max-width: 900px)": function () {
+        gsap.utils.toArray('.prog-item').forEach((el,i) => {
+          gsap.fromTo(el, { opacity:0, y:28 }, { opacity:1, y:0, duration:0.65, delay:i*0.12, ease:'power2.out', scrollTrigger:{trigger:el,start:'top 88%',toggleActions:'play none none reverse'} });
+        });
+      }
+    });
+
+    /* ── Photo parallax ── */
+    gsap.to('.s-fullimg img', { yPercent:12, ease:'none', scrollTrigger:{trigger:'.s-fullimg',start:'top bottom',end:'bottom top',scrub:1} });
+
+    /* ── Témoignages ── */
+    gsap.utils.toArray('.testi-item').forEach((el,i) => {
+      gsap.fromTo(el, { opacity:0, y:30 }, { opacity:1, y:0, duration:0.7, delay:i*0.08, scrollTrigger:{trigger:'.testimonials',start:'top 82%',toggleActions:'play none none reverse'} });
+    });
+
+    /* ── Contact ── */
+    gsap.fromTo('.contact-heading', { opacity:0, y:40 }, { opacity:1, y:0, duration:0.9, scrollTrigger:{trigger:'.s-contact',start:'top 82%',toggleActions:'play none none reverse'} });
+    gsap.utils.toArray('.form-field').forEach((el,i) => {
+      gsap.fromTo(el, { opacity:0, y:18 }, { opacity:1, y:0, duration:0.55, delay:0.1+i*0.1, scrollTrigger:{trigger:'.contact-right',start:'top 80%',toggleActions:'play none none reverse'} });
+    });
+
+    /* ══════════════════════════════════════
+       CALENDRIER INTERACTIF
+    ══════════════════════════════════════ */
+    const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    const SLOTS_BY_DOW = {
+      1: ['9h00','10h30','12h00','17h00','18h30'],
+      2: ['8h00','9h30','11h00','16h00','18h00'],
+      3: ['9h00','14h00','15h30','17h00'],
+      4: ['8h30','10h00','12h00','16h30','18h00'],
+      5: ['9h00','10h30','12h00','14h00'],
+      6: ['10h00','11h30'],
+      0: []
+    };
+    const FULL_SLOTS = ['10h30','17h00','9h30'];
+
+    const today = new Date();
+    let curYear = today.getFullYear();
+    let curMonth = today.getMonth();
+    let selectedDate = null;
+    let selectedSlot = null;
+
+    function renderCalendar() {
+      const calGrid = document.getElementById('calGrid');
+      const calMonth = document.getElementById('calMonth');
+      calMonth.textContent = MONTHS[curMonth] + ' ' + curYear;
+
+      // Remove old day cells (keep day labels = first 7 children)
+      const labels = Array.from(calGrid.children).slice(0, 7);
+      calGrid.innerHTML = '';
+      labels.forEach(l => calGrid.appendChild(l));
+
+      const firstDay = new Date(curYear, curMonth, 1);
+      // Monday-first: 0=Mon … 6=Sun
+      let startDow = firstDay.getDay(); // 0=Sun
+      startDow = (startDow + 6) % 7;    // shift so Mon=0
+
+      const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+
+      // Empty cells
+      for (let i = 0; i < startDow; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        calGrid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(curYear, curMonth, d);
+        const dow = date.getDay();
+        const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const isToday = date.toDateString() === today.toDateString();
+        const hasSlots = SLOTS_BY_DOW[dow] && SLOTS_BY_DOW[dow].length > 0;
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-day';
+        cell.textContent = d;
+
+        if (isPast) { cell.classList.add('past'); }
+        else if (!hasSlots) { cell.classList.add('past'); cell.style.opacity='0.15'; }
+        else {
+          cell.classList.add('available');
+          if (isToday) cell.classList.add('today');
+          cell.addEventListener('click', () => selectDate(date, cell));
+          // Re-apply cursor hover
+          cell.addEventListener('mouseenter', () => { cur.style.width='16px'; cur.style.height='16px'; ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='var(--primary)'; });
+          cell.addEventListener('mouseleave', () => { cur.style.width='10px'; cur.style.height='10px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(198,93,59,0.5)'; });
+        }
+
+        calGrid.appendChild(cell);
+      }
+    }
+
+    function selectDate(date, cell) {
+      // Unselect previous
+      document.querySelectorAll('.cal-day.selected').forEach(c => c.classList.remove('selected'));
+      cell.classList.add('selected');
+      selectedDate = date;
+      selectedSlot = null;
+
+      const dow = date.getDay();
+      const slots = SLOTS_BY_DOW[dow] || [];
+      const slotsSection = document.getElementById('slotsSection');
+      const slotsGrid = document.getElementById('slotsGrid');
+      const slotsLabel = document.getElementById('slotsLabel');
+
+      const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+      slotsLabel.textContent = dayNames[dow] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()];
+
+      slotsGrid.innerHTML = '';
+      slots.forEach(slot => {
+        const btn = document.createElement('button');
+        btn.className = 'slot-btn';
+        btn.textContent = slot;
+        if (FULL_SLOTS.includes(slot)) { btn.classList.add('full'); btn.textContent = slot + ' — complet'; }
+        else {
+          btn.addEventListener('click', () => selectSlot(slot, btn));
+          btn.addEventListener('mouseenter', () => { cur.style.width='16px'; cur.style.height='16px'; ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='var(--primary)'; });
+          btn.addEventListener('mouseleave', () => { cur.style.width='10px'; cur.style.height='10px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(198,93,59,0.5)'; });
+        }
+        slotsGrid.appendChild(btn);
+      });
+
+      slotsSection.style.display = 'flex';
+      document.getElementById('bookingForm').style.display = 'none';
+      document.getElementById('bookingCta').style.display = 'none';
+
+      gsap.fromTo(slotsSection, { opacity:0, y:10 }, { opacity:1, y:0, duration:0.4, ease:'power2.out' });
+    }
+
+    function selectSlot(slot, btn) {
+      document.querySelectorAll('.slot-btn.selected').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedSlot = slot;
+
+      const form = document.getElementById('bookingForm');
+      const cta = document.getElementById('bookingCta');
+      form.style.display = 'flex';
+      cta.style.display = 'block';
+      gsap.fromTo([form, cta], { opacity:0, y:10 }, { opacity:1, y:0, duration:0.4, stagger:0.1, ease:'power2.out' });
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', () => {
+      const name = document.getElementById('bfName').value.trim();
+      const email = document.getElementById('bfEmail').value.trim();
+      if (!name || !email || !selectedDate || !selectedSlot) {
+        gsap.fromTo('#bookingForm', { x:0 }, { x:[0,8,-8,6,-4,0], duration:0.4, ease:'none' });
+        return;
+      }
+      const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+      const dateStr = dayNames[selectedDate.getDay()] + ' ' + selectedDate.getDate() + ' ' + MONTHS[selectedDate.getMonth()] + ' à ' + selectedSlot;
+      document.getElementById('confirmDate').textContent = dateStr;
+
+      // Show confirmation, hide rest
+      document.getElementById('calGrid').parentElement.style.opacity = '0.35';
+      document.getElementById('slotsSection').style.display = 'none';
+      document.getElementById('bookingForm').style.display = 'none';
+      document.getElementById('bookingCta').style.display = 'none';
+      const conf = document.getElementById('bookingConfirm');
+      conf.style.display = 'flex';
+      gsap.fromTo(conf, { opacity:0, scale:0.95 }, { opacity:1, scale:1, duration:0.5, ease:'back.out(1.5)' });
+    });
+
+    document.getElementById('calPrev').addEventListener('click', () => {
+      curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; }
+      renderCalendar();
+      selectedDate = null; selectedSlot = null;
+      document.getElementById('slotsSection').style.display = 'none';
+      document.getElementById('bookingForm').style.display = 'none';
+      document.getElementById('bookingCta').style.display = 'none';
+    });
+    document.getElementById('calNext').addEventListener('click', () => {
+      curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; }
+      renderCalendar();
+      selectedDate = null; selectedSlot = null;
+      document.getElementById('slotsSection').style.display = 'none';
+      document.getElementById('bookingForm').style.display = 'none';
+      document.getElementById('bookingCta').style.display = 'none';
+    });
+
+    renderCalendar();
+  </script>
+</body>
+</html>
