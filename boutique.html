@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maison Aurel — Boutique</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===========================
+       RESET & BASE
+    =========================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #F7F3EE;
+      --fg:        #1C1814;
+      --accent:    #8B5E3C;
+      --muted:     #A89880;
+      --line:      #D9CFC4;
+      --white:     #FDFAF7;
+      --card-bg:   #FFFFFF;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-mono:  'DM Mono', monospace;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-serif);
+      min-height: 100vh;
+    }
+
+    /* ===========================
+       HEADER
+    =========================== */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 48px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg);
+    }
+
+    .logo span {
+      font-style: italic;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .cart-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: 1px solid var(--line);
+      padding: 10px 20px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--fg);
+      transition: all 0.2s;
+    }
+
+    .cart-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .cart-count {
+      background: var(--accent);
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 400;
+      transition: transform 0.2s;
+    }
+
+    .cart-count.bump {
+      transform: scale(1.4);
+    }
+
+    /* ===========================
+       HERO STRIP
+    =========================== */
+    .hero-strip {
+      text-align: center;
+      padding: 56px 48px 40px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-strip .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .hero-strip h1 {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-strip h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    /* ===========================
+       PRODUCTS GRID
+    =========================== */
+    .shop {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 48px;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      border: 1px solid var(--line);
+    }
+
+    .product-card {
+      background: var(--card-bg);
+      padding: 40px 32px;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: background 0.2s;
+    }
+
+    .product-card:last-child { border-right: none; }
+    .product-card:hover { background: var(--white); }
+
+    .product-icon {
+      font-size: 2.4rem;
+      line-height: 1;
+    }
+
+    .product-ref {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .product-name {
+      font-size: 1.45rem;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .product-desc {
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .product-price {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    /* Quantity control */
+    .qty-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--line);
+      width: fit-content;
+    }
+
+    .qty-btn {
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      font-family: var(--font-mono);
+    }
+
+    .qty-btn:hover { background: var(--accent); color: white; }
+
+    .qty-value {
+      width: 44px;
+      height: 36px;
+      text-align: center;
+      border: none;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      background: transparent;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--fg);
+    }
+
+    .qty-value:focus { outline: none; }
+
+    /* ===========================
+       CART PANEL
+    =========================== */
+    .cart-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 24, 20, 0.4);
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+
+    .cart-overlay.open { display: block; }
+
+    .cart-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: var(--white);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.35s cubic-bezier(.4,0,.2,1);
+      border-left: 1px solid var(--line);
+    }
+
+    .cart-panel.open { right: 0; }
+
+    .cart-header {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cart-header h2 {
+      font-size: 1.2rem;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      color: var(--muted);
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.15s;
+    }
+
+    .close-btn:hover { color: var(--fg); }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+    }
+
+    .cart-empty {
+      text-align: center;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 1rem;
+      margin-top: 48px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cart-item-name {
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    .cart-item-qty {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .cart-item-price {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+
+    .cart-footer {
+      padding: 24px 32px;
+      border-top: 1px solid var(--line);
+    }
+
+    .cart-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .cart-total-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .cart-total-amount {
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      color: var(--fg);
+    }
+
+    .checkout-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--fg);
+      color: var(--white);
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+
+    .checkout-btn:hover { background: var(--accent); }
+    .checkout-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+    /* ===========================
+       CHECKOUT FORM (inline dans le panel)
+    =========================== */
+    .checkout-form {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 16px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .checkout-form.visible { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .form-group input {
+      border: 1px solid var(--line);
+      background: transparent;
+      padding: 12px 14px;
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--fg);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input:focus { border-color: var(--accent); }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+
+    .submit-btn:hover { background: #7a5232; }
+    .submit-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+    .back-link {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      width: 100%;
+      transition: color 0.15s;
+    }
+
+    .back-link:hover { color: var(--fg); }
+
+    /* ===========================
+       SUCCESS STATE
+    =========================== */
+    .success-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex: 1;
+      padding: 48px 32px;
+      gap: 20px;
+    }
+
+    .success-panel.visible { display: flex; }
+
+    .success-icon {
+      font-size: 3rem;
+      line-height: 1;
+    }
+
+    .success-panel h3 {
+      font-size: 1.6rem;
+      font-weight: 300;
+      line-height: 1.2;
+    }
+
+    .success-panel p {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* ===========================
+       FOOTER
+    =========================== */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 48px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ===========================
+       RESPONSIVE
+    =========================== */
+    @media (max-width: 768px) {
+      header { padding: 20px 24px; }
+      .hero-strip { padding: 40px 24px 28px; }
+      .shop { padding: 40px 24px; }
+      .products-grid {
+        grid-template-columns: 1fr;
+        border: none;
+        gap: 12px;
+      }
+      .product-card {
+        border: 1px solid var(--line);
+        border-right: 1px solid var(--line);
+      }
+      .cart-panel { width: 100%; right: -100%; }
+    }
+
+    @media (max-width: 480px) {
+      .logo { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Maison <span>Aurel</span></div>
+    <button class="cart-btn" onclick="openCart()" aria-label="Voir le panier">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      Panier
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero-strip">
+    <p class="eyebrow">Collection printemps 2026</p>
+    <h1>Objets <em>choisis</em><br>pour durer</h1>
+  </section>
+
+  <!-- PRODUITS -->
+  <main class="shop">
+    <div class="products-grid" id="productsGrid">
+
+      <!-- Produit 1 -->
+      <div class="product-card">
+        <div class="product-icon">🕯️</div>
+        <div>
+          <p class="product-ref">REF-001</p>
+          <h2 class="product-name">Bougie Ambre & Cèdre</h2>
+        </div>
+        <p class="product-desc">Cire de soja, fragrance naturelle. Durée de combustion estimée à 45 heures. Fabriquée à la main en Occitanie.</p>
+        <p class="product-price">24,00 €</p>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="changeQty(0, -1)" aria-label="Diminuer">−</button>
+          <input class="qty-value" id="qty-0" type="number" value="0" min="0" max="99" readonly />
+          <button class="qty-btn" onclick="changeQty(0, 1)" aria-label="Augmenter">+</button>
+        </div>
+      </div>
+
+      <!-- Produit 2 -->
+      <div class="product-card">
+        <div class="product-icon">📓</div>
+        <div>
+          <p class="product-ref">REF-002</p>
+          <h2 class="product-name">Carnet de voyage</h2>
+        </div>
+        <p class="product-desc">Couverture cuir pleine fleur, papier ivoire 120g, 192 pages. Reliure cousue, signet en soie. Format A5.</p>
+        <p class="product-price">18,00 €</p>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="changeQty(1, -1)" aria-label="Diminuer">−</button>
+          <input class="qty-value" id="qty-1" type="number" value="0" min="0" max="99" readonly />
+          <button class="qty-btn" onclick="changeQty(1, 1)" aria-label="Augmenter">+</button>
+        </div>
+      </div>
+
+      <!-- Produit 3 -->
+      <div class="product-card">
+        <div class="product-icon">🛍️</div>
+        <div>
+          <p class="product-ref">REF-003</p>
+          <h2 class="product-name">Tote bag lin naturel</h2>
+        </div>
+        <p class="product-desc">Lin lavé 280g/m², sérigraphie à l'eau, anses renforcées. Dimensions : 38 × 42 cm. Lavable en machine à 30°.</p>
+        <p class="product-price">32,00 €</p>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="changeQty(2, -1)" aria-label="Diminuer">−</button>
+          <input class="qty-value" id="qty-2" type="number" value="0" min="0" max="99" readonly />
+          <button class="qty-btn" onclick="changeQty(2, 1)" aria-label="Augmenter">+</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; 2026 Maison Aurel — test boutique Kovama
+  </footer>
+
+  <!-- OVERLAY PANIER -->
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+  <!-- PANEL PANIER -->
+  <aside class="cart-panel" id="cartPanel" aria-label="Panier">
+
+    <div class="cart-header">
+      <h2>Votre panier</h2>
+      <button class="close-btn" onclick="closeCart()" aria-label="Fermer">×</button>
+    </div>
+
+    <!-- Vue panier -->
+    <div id="cartView" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="cart-items" id="cartItems">
+        <p class="cart-empty" id="cartEmpty">Votre panier est vide.</p>
+      </div>
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span class="cart-total-label">Total</span>
+          <span class="cart-total-amount" id="cartTotal">0,00 €</span>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn" onclick="showCheckout()" disabled>
+          Passer la commande
+        </button>
+      </div>
+    </div>
+
+    <!-- Vue formulaire -->
+    <div id="formView" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="cart-items">
+        <p style="font-family: var(--font-mono); font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;">Vos coordonnées</p>
+        <div class="checkout-form visible" id="checkoutForm">
+          <div class="form-group">
+            <label for="inputPrenom">Prénom</label>
+            <input type="text" id="inputPrenom" placeholder="Votre prénom" autocomplete="given-name" />
+          </div>
+          <div class="form-group">
+            <label for="inputNom">Nom</label>
+            <input type="text" id="inputNom" placeholder="Votre nom de famille" autocomplete="family-name" />
+          </div>
+        </div>
+      </div>
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span class="cart-total-label">Total</span>
+          <span class="cart-total-amount" id="formTotal">0,00 €</span>
+        </div>
+        <button class="submit-btn" id="submitBtn" onclick="submitOrder()">
+          Envoyer la commande
+        </button>
+        <button class="back-link" onclick="showCart()" style="margin-top:12px;">
+          ← Retour au panier
+        </button>
+      </div>
+    </div>
+
+    <!-- Vue succès -->
+    <div class="success-panel" id="successView">
+      <div class="success-icon">✦</div>
+      <h3>Commande reçue,<br><em>merci !</em></h3>
+      <p>Un récapitulatif a été envoyé par email.<br>Nous vous contacterons très bientôt.</p>
+      <button class="checkout-btn" onclick="resetAll()" style="margin-top:16px;">
+        Retour à la boutique
+      </button>
+    </div>
+
+  </aside>
+
+  <script>
+    /* ===========================
+       DONNÉES PRODUITS
+    =========================== */
+    const PRODUCTS = [
+      { name: 'Bougie Ambre & Cèdre',  ref: 'REF-001', price: 24 },
+      { name: 'Carnet de voyage',       ref: 'REF-002', price: 18 },
+      { name: 'Tote bag lin naturel',   ref: 'REF-003', price: 32 },
+    ];
+
+    const quantities = [0, 0, 0];
+
+    /* ===========================
+       QUANTITÉS
+    =========================== */
+    function changeQty(index, delta) {
+      quantities[index] = Math.max(0, quantities[index] + delta);
+      document.getElementById('qty-' + index).value = quantities[index];
+      updateCartUI();
+      if (delta > 0) bumpCount();
+    }
+
+    function bumpCount() {
+      const el = document.getElementById('cartCount');
+      el.classList.remove('bump');
+      void el.offsetWidth;
+      el.classList.add('bump');
+      setTimeout(() => el.classList.remove('bump'), 300);
+    }
+
+    /* ===========================
+       MISE À JOUR UI PANIER
+    =========================== */
+    function updateCartUI() {
+      const total = quantities.reduce((sum, q, i) => sum + q * PRODUCTS[i].price, 0);
+      const totalStr = total.toFixed(2).replace('.', ',') + ' €';
+
+      document.getElementById('cartTotal').textContent = totalStr;
+      document.getElementById('formTotal').textContent  = totalStr;
+
+      const count = quantities.reduce((a, b) => a + b, 0);
+      document.getElementById('cartCount').textContent = count;
+
+      const checkoutBtn = document.getElementById('checkoutBtn');
+      checkoutBtn.disabled = count === 0;
+
+      // Lignes du panier
+      const container = document.getElementById('cartItems');
+      const emptyMsg  = document.getElementById('cartEmpty');
+      const lines = PRODUCTS
+        .map((p, i) => ({ ...p, qty: quantities[i] }))
+        .filter(p => p.qty > 0);
+
+      if (lines.length === 0) {
+        emptyMsg.style.display = 'block';
+        // Supprimer les anciens items
+        container.querySelectorAll('.cart-item').forEach(el => el.remove());
+      } else {
+        emptyMsg.style.display = 'none';
+        container.querySelectorAll('.cart-item').forEach(el => el.remove());
+        lines.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'cart-item';
+          item.innerHTML = `
+            <div>
+              <p class="cart-item-name">${p.name}</p>
+              <p class="cart-item-qty">${p.qty} × ${p.price.toFixed(2).replace('.', ',')} €</p>
+            </div>
+            <span class="cart-item-price">${(p.qty * p.price).toFixed(2).replace('.', ',')} €</span>
+          `;
+          container.appendChild(item);
+        });
+      }
+    }
+
+    /* ===========================
+       OUVERTURE / FERMETURE PANIER
+    =========================== */
+    function openCart() {
+      document.getElementById('cartOverlay').classList.add('open');
+      document.getElementById('cartPanel').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCart() {
+      document.getElementById('cartOverlay').classList.remove('open');
+      document.getElementById('cartPanel').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function showCheckout() {
+      document.getElementById('cartView').style.display  = 'none';
+      document.getElementById('formView').style.display  = 'flex';
+      document.getElementById('successView').classList.remove('visible');
+    }
+
+    function showCart() {
+      document.getElementById('formView').style.display  = 'none';
+      document.getElementById('cartView').style.display  = 'flex';
+    }
+
+    /* ===========================
+       SOUMISSION COMMANDE
+    =========================== */
+    async function submitOrder() {
+      const prenom = document.getElementById('inputPrenom').value.trim();
+      const nom    = document.getElementById('inputNom').value.trim();
+
+      if (!prenom || !nom) {
+        document.getElementById('inputPrenom').style.borderColor = prenom ? '' : '#C0392B';
+        document.getElementById('inputNom').style.borderColor    = nom    ? '' : '#C0392B';
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.textContent = 'Envoi en cours…';
+      submitBtn.disabled = true;
+
+      // Construire le résumé commande
+      const lignes = PRODUCTS
+        .map((p, i) => ({ ...p, qty: quantities[i] }))
+        .filter(p => p.qty > 0);
+
+      const total = lignes.reduce((sum, p) => sum + p.qty * p.price, 0);
+
+      const lignesTexte = lignes
+        .map(p => `• ${p.name} (${p.ref}) × ${p.qty} = ${(p.qty * p.price).toFixed(2)} €`)
+        .join('\n');
+
+      const message = `Nouvelle commande — Maison Aurel\n\n`
+        + `Client : ${prenom} ${nom.toUpperCase()}\n\n`
+        + `Détail de la commande :\n${lignesTexte}\n\n`
+        + `─────────────────────\n`
+        + `TOTAL : ${total.toFixed(2)} €\n\n`
+        + `Envoyé depuis la boutique test Kovama.`;
+
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_key: 'a6313d0d-342e-47f2-86ad-4e1463725394',
+            subject: `Commande Maison Aurel — ${prenom} ${nom.toUpperCase()}`,
+            name: `${prenom} ${nom}`,
+            message: message,
+            from_name: 'Boutique Maison Aurel',
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('formView').style.display = 'none';
+          document.getElementById('successView').classList.add('visible');
+          // Reset quantités
+          quantities.fill(0);
+          PRODUCTS.forEach((_, i) => {
+            document.getElementById('qty-' + i).value = 0;
+          });
+          updateCartUI();
+        } else {
+          throw new Error('Réponse Web3Forms non OK');
+        }
+      } catch (err) {
+        submitBtn.textContent = 'Erreur — réessayer';
+        submitBtn.disabled = false;
+        console.error(err);
+      }
+    }
+
+    function resetAll() {
+      document.getElementById('successView').classList.remove('visible');
+      document.getElementById('cartView').style.display  = 'flex';
+      document.getElementById('formView').style.display  = 'none';
+      document.getElementById('inputPrenom').value = '';
+      document.getElementById('inputNom').value    = '';
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.textContent = 'Envoyer la commande';
+      submitBtn.disabled = false;
+      closeCart();
+    }
+
+    /* Init */
+    updateCartUI();
+  </script>
+
+</body>
+</html>
