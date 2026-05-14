@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -804,28 +804,26 @@
 
       const total = lignes.reduce((sum, p) => sum + p.qty * p.price, 0);
 
-      const lignesTexte = lignes
-        .map(p => `• ${p.name} (${p.ref}) × ${p.qty} = ${(p.qty * p.price).toFixed(2)} €`)
-        .join('\n');
+      // Construire le payload avec un champ par article commandé
+      const payload = {
+        access_key: 'a6313d0d-342e-47f2-86ad-4e1463725394',
+        subject: `${prenom} ${nom.toUpperCase()} — ${lignes.map(p => `${p.name.split(' ')[0]} ×${p.qty}`).join(', ')} — ${total.toFixed(2)} €`,
+        from_name: 'Boutique Maison Aurel',
+        'Prénom': prenom,
+        'Nom': nom.toUpperCase(),
+      };
 
-      const message = `Nouvelle commande — Maison Aurel\n\n`
-        + `Client : ${prenom} ${nom.toUpperCase()}\n\n`
-        + `Détail de la commande :\n${lignesTexte}\n\n`
-        + `─────────────────────\n`
-        + `TOTAL : ${total.toFixed(2)} €\n\n`
-        + `Envoyé depuis la boutique test Kovama.`;
+      lignes.forEach(p => {
+        payload[`${p.name} (${p.ref})`] = `${p.qty} × ${p.price.toFixed(2)} € = ${(p.qty * p.price).toFixed(2)} €`;
+      });
+
+      payload['TOTAL'] = `${total.toFixed(2)} €`;
 
       try {
         const res = await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            access_key: 'a6313d0d-342e-47f2-86ad-4e1463725394',
-            subject: `Commande Maison Aurel — ${prenom} ${nom.toUpperCase()}`,
-            name: `${prenom} ${nom}`,
-            message: message,
-            from_name: 'Boutique Maison Aurel',
-          }),
+          body: JSON.stringify(payload),
         });
 
         const data = await res.json();
